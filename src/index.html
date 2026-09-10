@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Torque Log Visualizer</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <style>
+    :root{--bg:#0f172a;--card:#1e293b;--card2:#162033;--accent:#38bdf8;--green:#4ade80;--text:#f8fafc;--dim:#94a3b8;--border:#334155;--danger:#f87171}
+    *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    header{position:sticky;top:0;z-index:1000;padding:1rem 1.5rem;background:rgba(30,41,59,.96);display:flex;justify-content:space-between;align-items:center;gap:1rem;box-shadow:0 4px 14px rgba(0,0,0,.25);backdrop-filter:blur(8px)}
+    .title{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap} h1{margin:0;font-size:1.25rem}.divider{color:var(--dim)} .log-date{color:var(--accent);font-weight:600}.file-name{color:var(--dim);font-size:.85rem}
+    input[type=file]{display:none}.upload{display:inline-block;background:#0284c7;color:#fff;padding:.6rem 1rem;border-radius:8px;cursor:pointer;font-weight:600;white-space:nowrap}.upload:hover{background:#0369a1}
+    .status{margin:1rem 1.5rem 0;padding:.75rem 1rem;border:1px solid var(--border);border-radius:8px;background:var(--card2);color:var(--dim)}
+    .chart-control{display:grid;grid-template-columns:auto minmax(100px,1fr) 52px;gap:.65rem;align-items:center;margin:0 0 .65rem}.chart-control label{font-size:.78rem;color:var(--dim);font-weight:650}.chart-control input{width:100%;accent-color:var(--accent)}.smooth-value{color:var(--accent);font-size:.8rem;font-weight:750;text-align:right}.status.error{border-color:var(--danger);color:#fecaca}
+    .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:1rem;padding:1rem 1.5rem 0}.metric{background:var(--card);padding:1rem;border-radius:10px;border:1px solid var(--border)}
+    .metric-title{font-size:.72rem;color:var(--dim);text-transform:uppercase;letter-spacing:.05em}.metric-value{font-size:1.45rem;font-weight:750;margin-top:.25rem;color:var(--accent)}.metric-value small{font-size:.75rem;color:var(--dim)}
+    main{padding:1rem 1.5rem 2rem}.top-grid{display:grid;grid-template-columns:minmax(300px,1.1fr) minmax(360px,1fr);gap:1rem}.panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem;min-width:0}.panel h2{font-size:.95rem;margin:0;color:#e2e8f0}.chart-header{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.75rem}.collapse-toggle{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--border);border-radius:8px;background:var(--card2);color:var(--accent);cursor:pointer;transition:background .2s,transform .2s}.collapse-toggle:hover{background:#243247}.collapse-toggle svg{width:18px;height:18px;transition:transform .2s}.collapsible-chart.collapsed{height:auto;min-height:0}.collapsible-chart.collapsed .chart-body{display:none}.collapsible-chart.collapsed .chart-header{margin-bottom:0}.collapsible-chart.collapsed .collapse-toggle svg{transform:rotate(-90deg)}
+    #map{height:530px;border-radius:8px}.timeline-control{margin-top:.85rem;padding:.75rem;background:var(--card2);border-radius:8px}.timeline-row{display:grid;grid-template-columns:auto minmax(140px,1fr) auto;gap:.75rem;align-items:center}.timeline-row label{font-size:.8rem;color:var(--dim);font-weight:650}.timeline-row input{width:100%;accent-color:var(--accent)}.timeline-value{color:var(--accent);font-size:.8rem;font-weight:750;min-width:118px;text-align:right}.timeline-help{color:var(--dim);font-size:.72rem;margin-top:.4rem}.timeline-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.65rem}.icon-button{height:34px;min-width:36px;padding:0 .65rem;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;border:1px solid var(--border);border-radius:8px;background:#243247;color:var(--text);cursor:pointer;font-weight:650;font-size:.76rem}.icon-button.active{background:#166534;border-color:#4ade80;color:#dcfce7}.icon-button:hover{background:#334155}.icon-button:disabled{opacity:.45;cursor:not-allowed}.icon-button svg{width:16px;height:16px;fill:currentColor}.map-actions{margin-left:auto}.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-top:1rem}.chart-box{height:375px}.chart-box.wide{grid-column:span 2}.chart-wrap{position:relative;height:275px}
+    .parameter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.5rem}.parameter{display:flex;justify-content:space-between;gap:1rem;padding:.55rem .7rem;background:var(--card2);border-radius:6px;font-size:.84rem}.parameter span:first-child{color:var(--dim)}.parameter strong{color:#e2e8f0;text-align:right}
+    @media(max-width:1000px){.top-grid{grid-template-columns:1fr}#map{height:390px}} @media(max-width:720px){header{align-items:flex-start}.charts{grid-template-columns:1fr}.chart-box.wide{grid-column:auto}.metrics,main{padding-left:.75rem;padding-right:.75rem}.status{margin-left:.75rem;margin-right:.75rem}.chart-control{grid-template-columns:auto 1fr 48px}}
+  </style>
+</head>
+<body>
+<header>
+  <div class="title"><h1>Torque OBD Visualizer</h1><span class="divider">|</span><span id="display-date" class="log-date">No CSV loaded</span><span id="file-name" class="file-name"></span></div>
+  <label for="csvFileInput" class="upload">Import CSV</label><input type="file" id="csvFileInput" accept=".csv,text/csv">
+</header>
+<div id="status" class="status">Select a Torque CSV export. All processing stays in your browser.</div>
+
+<section class="metrics">
+  <div class="metric"><div class="metric-title">OBD Speed</div><div class="metric-value" id="m-speed">N/A</div></div>
+  <div class="metric"><div class="metric-title">Max Engine RPM (filtered)</div><div class="metric-value" id="m-rpm">N/A</div></div>
+  <div class="metric"><div class="metric-title">Engine RPM</div><div class="metric-value" id="m-rpm-current">N/A</div></div>
+  <div class="metric"><div class="metric-title">Engine Load</div><div class="metric-value" id="m-load">N/A</div></div>
+  <div class="metric"><div class="metric-title">Average Engine Load</div><div class="metric-value" id="m-flow">N/A</div></div>
+  <div class="metric"><div class="metric-title">Intake Air Temp</div><div class="metric-value" id="m-iat">N/A</div></div>
+  <div class="metric"><div class="metric-title">Satellites Locked</div><div class="metric-value" id="m-sats">N/A</div></div>
+  <div class="metric"><div class="metric-title">Average Voltage</div><div class="metric-value" id="m-volt">N/A</div></div>
+  <div class="metric"><div class="metric-title">Device Battery</div><div class="metric-value" id="m-battery">N/A</div></div>
+  <div class="metric"><div class="metric-title">Data Points</div><div class="metric-value" id="m-points">0</div></div>
+</section>
+<main>
+  <div class="top-grid">
+    <section class="panel"><h2>GPS Route</h2><div id="map"></div><div class="timeline-control"><div class="timeline-row"><label for="timelineSlider">Timeline</label><input type="range" id="timelineSlider" min="1" max="1" value="1" step="1" disabled><output id="timelineValue" class="timeline-value">100%</output></div><div class="timeline-actions"><button id="timelineStart" class="icon-button" type="button" title="Skip to start" aria-label="Skip to start"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6V5zm3.5 7L18 5v14l-8.5-7z"/></svg></button><button id="timelinePlay" class="icon-button" type="button" title="Play timeline" aria-label="Play timeline"><svg id="timelinePlayIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button id="timelineEnd" class="icon-button" type="button" title="Skip to end" aria-label="Skip to end"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2V5zM6 5l8.5 7L6 19V5z"/></svg></button><span class="map-actions"></span><button id="mapZoomActive" class="icon-button" type="button" title="Follow the current playback position"><svg viewBox="0 0 24 24"><path d="M9 3a6 6 0 104.47 10l5.76 5.77 1.42-1.42-5.77-5.76A6 6 0 009 3zm0 2a4 4 0 110 8 4 4 0 010-8zm-1 2v2H6v2h2v2h2v-2h2V9h-2V7H8z"/></svg>Follow</button><button id="mapFitRoute" class="icon-button" type="button" title="Show the complete route"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/></svg>Full route</button></div><div class="timeline-help">Play or drag through the journey. Future graph data is shaded. Follow keeps the map centered near the latest available GPS position, while Full route restores the initial fitted view.</div></div></section>
+    <section class="panel"><h2>Available parameter summary</h2><div id="parameter-grid" class="parameter-grid"></div></section>
+  </div>
+  <div class="charts">
+    <section class="panel chart-box wide"><h2>Vehicle speed</h2><div class="chart-control"><label for="smooth-speed">Speed smoothing</label><input class="graph-smoothing" data-chart="speedChart" type="range" id="smooth-speed" min="0" max="100" value="0" step="1"><output id="smooth-speed-value" class="smooth-value">0%</output></div><div class="chart-wrap"><canvas id="speedChart"></canvas></div></section>
+    <section class="panel chart-box collapsible-chart" data-chart-panel="engineChart"><div class="chart-header"><h2>Engine RPM and load</h2><button type="button" class="collapse-toggle" aria-expanded="true" aria-label="Collapse Engine RPM and load" title="Collapse or expand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="chart-body"><div class="chart-control"><label for="smooth-engine">Engine smoothing</label><input class="graph-smoothing" data-chart="engineChart" type="range" id="smooth-engine" min="0" max="100" value="0" step="1"><output id="smooth-engine-value" class="smooth-value">0%</output></div><div class="chart-wrap"><canvas id="engineChart"></canvas></div></div></section>
+    <section class="panel chart-box collapsible-chart" data-chart-panel="fuelChart"><div class="chart-header"><h2>Fuel flow and trip economy</h2><button type="button" class="collapse-toggle" aria-expanded="true" aria-label="Collapse Fuel flow and trip economy" title="Collapse or expand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="chart-body"><div class="chart-control"><label for="smooth-fuel">Fuel smoothing</label><input class="graph-smoothing" data-chart="fuelChart" type="range" id="smooth-fuel" min="0" max="100" value="0" step="1"><output id="smooth-fuel-value" class="smooth-value">0%</output></div><div class="chart-wrap"><canvas id="fuelChart"></canvas></div></div></section>
+    <section class="panel chart-box collapsible-chart" data-chart-panel="accelChart"><div class="chart-header"><h2>Acceleration sensor</h2><button type="button" class="collapse-toggle" aria-expanded="true" aria-label="Collapse Acceleration sensor" title="Collapse or expand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="chart-body"><div class="chart-control"><label for="smooth-accel">Acceleration smoothing</label><input class="graph-smoothing" data-chart="accelChart" type="range" id="smooth-accel" min="0" max="100" value="0" step="1"><output id="smooth-accel-value" class="smooth-value">0%</output></div><div class="chart-wrap"><canvas id="accelChart"></canvas></div></div></section>
+    <section class="panel chart-box collapsible-chart" data-chart-panel="gForceChart"><div class="chart-header"><h2>Raw device G sensor</h2><button type="button" class="collapse-toggle" aria-expanded="true" aria-label="Collapse Raw device G sensor" title="Collapse or expand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="chart-body"><div class="chart-control"><label for="smooth-gforce">G-sensor smoothing</label><input class="graph-smoothing" data-chart="gForceChart" type="range" id="smooth-gforce" min="0" max="100" value="0" step="1"><output id="smooth-gforce-value" class="smooth-value">0%</output></div><div class="chart-wrap"><canvas id="gForceChart"></canvas></div></div></section>
+  </div>
+</main>
+<script>
+const map=L.map('map',{zoomSnap:.25}).setView([38.0,23.7],10);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+let route=L.polyline([],{color:'#38bdf8',weight:4,opacity:.9}).addTo(map),startMarker,endMarker,charts=[];
+let timelineState=null;
+let playbackTimer=null;
+let followCurrent=false,followTimer=null;
+const inactiveTimelinePlugin={
+ id:'inactiveTimeline',
+ afterDatasetsDraw(chart,args,opts){
+  if(!timelineState||timelineState.activeCount>=timelineState.total)return;
+  const {ctx,chartArea,scales}=chart;if(!chartArea||!scales.x)return;
+  const boundary=scales.x.getPixelForValue(Math.max(0,timelineState.activeCount-0.5));
+  ctx.save();ctx.fillStyle='rgba(2,6,23,.68)';ctx.fillRect(Math.max(chartArea.left,boundary),chartArea.top,chartArea.right-Math.max(chartArea.left,boundary),chartArea.bottom-chartArea.top);ctx.restore();
+ }
+};
+Chart.register(inactiveTimelinePlugin);
+const norm=s=>String(s??'').replace(/^\uFEFF/,'').trim().toLowerCase().replace(/\s+/g,' ');
+const valid=v=>v!==undefined&&v!==null&&String(v).trim()!==''&&String(v).trim()!=='-';
+const number=v=>{if(!valid(v))return null;const n=Number(String(v).trim());return Number.isFinite(n)?n:null};
+const average=a=>{const v=a.filter(Number.isFinite);return v.length?v.reduce((x,y)=>x+y,0)/v.length:null};
+const maximum=a=>{const v=a.filter(Number.isFinite);return v.length?Math.max(...v):null};
+const lastValid=a=>{for(let i=a.length-1;i>=0;i--)if(Number.isFinite(a[i]))return a[i];return null};
+const median=a=>{const v=a.filter(Number.isFinite).sort((x,y)=>x-y);if(!v.length)return null;const m=Math.floor(v.length/2);return v.length%2?v[m]:(v[m-1]+v[m])/2};
+function hampelFilter(values,radius=3,sigma=3,maxValue=8000,maxStep=3500){
+ const out=[...values],flags=new Array(values.length).fill(false);
+ for(let i=0;i<values.length;i++){
+  const v=values[i];if(!Number.isFinite(v))continue;
+  const window=values.slice(Math.max(0,i-radius),Math.min(values.length,i+radius+1)).filter(Number.isFinite);
+  const med=median(window);const mad=median(window.map(x=>Math.abs(x-med)));const robustSigma=mad===null?0:1.4826*mad;
+  const prev=out.slice(Math.max(0,i-2),i).filter(Number.isFinite);const prevMed=median(prev);
+  const impossible=v<0||v>maxValue;
+  const statistical=robustSigma>0&&Math.abs(v-med)>sigma*robustSigma;
+  const isolatedJump=Number.isFinite(prevMed)&&Math.abs(v-prevMed)>maxStep&&Number.isFinite(med)&&Math.abs(v-med)>maxStep/2;
+  if(impossible||statistical||isolatedJump){out[i]=med;flags[i]=true;}
+ }
+ return{values:out,flags,count:flags.filter(Boolean).length};
+}
+const fmt=(v,d=1,u='')=>Number.isFinite(v)?`${v.toFixed(d)}${u?` <small>${u}</small>`:''}`:'N/A';
+function parseTime(v){if(!valid(v))return{date:null,time:'--:--:--'};const m=String(v).trim().match(/^(\d{1,2}-[A-Za-z]{3}-\d{4})\s+(\d{2}:\d{2}:\d{2})/);return m?{date:m[1],time:m[2]}:{date:null,time:String(v)}}
+function findKey(fields,...names){const wanted=names.map(norm);return fields.find(f=>wanted.includes(norm(f)))||fields.find(f=>wanted.some(n=>norm(f).includes(n)))}
+function series(rows,key){return rows.map(r=>key?number(r[key]):null)}
+function contextualPowertrainFilter(raw, obdSpeed, engineLoad){
+ const filtered={rpm:[],fuelFlow:[],tripL100:[]},flags={rpm:[],fuelFlow:[],tripL100:[]};
+ for(let i=0;i<raw.rpm.length;i++){
+  const speed=Number.isFinite(obdSpeed[i])?Math.max(0,obdSpeed[i]):null;
+  const load=Number.isFinite(engineLoad[i])?Math.min(100,Math.max(0,engineLoad[i])):null;
+
+  // RPM: the accepted ceiling rises with engine load.
+  const r=raw.rpm[i];
+  const rpmLoadLimit=load===null?8000:load<10?2500:load<25?4000:load<50?6500:8000;
+  const rpmOk=Number.isFinite(r)&&r>=0&&r<=rpmLoadLimit;
+  filtered.rpm.push(rpmOk?r:null);flags.rpm.push(Number.isFinite(r)&&!rpmOk);
+
+  // Fuel flow: allowed flow rises progressively with engine load.
+  const f=raw.fuelFlow[i];
+  const fuelLoadLimit=load===null?80:Math.min(80,Math.max(3,1.5+load*0.75));
+  const flowOk=Number.isFinite(f)&&f>=0&&f<=fuelLoadLimit;
+  filtered.fuelFlow.push(flowOk?f:null);flags.fuelFlow.push(Number.isFinite(f)&&!flowOk);
+
+  // Trip l/100 km: engine load sets the plausible upper limit. OBD speed is used
+  // only to avoid mathematically unstable consumption readings below 5 km/h.
+  const t=raw.tripL100[i];
+  const tripLoadLimit=load===null?100:Math.min(100,Math.max(15,10+load*2));
+  const tripOk=Number.isFinite(t)&&t>=0&&t<=tripLoadLimit&&
+   (load===null||load>=2)&&(speed===null||speed>=5);
+  filtered.tripL100.push(tripOk?t:null);flags.tripL100.push(Number.isFinite(t)&&!tripOk);
+ }
+ const rpmH=hampelFilter(filtered.rpm,3,3,8000,3500);
+ const fuelH=hampelFilter(filtered.fuelFlow,3,3,80,20);
+ const tripH=hampelFilter(filtered.tripL100,3,3,100,35);
+ const count=(contextFlags,hampelResult)=>contextFlags.filter(Boolean).length+hampelResult.count;
+ return{rpm:rpmH.values,fuelFlow:fuelH.values,tripL100:tripH.values,
+  counts:{rpm:count(flags.rpm,rpmH),fuelFlow:count(flags.fuelFlow,fuelH),tripL100:count(flags.tripL100,tripH)}};
+}
+function setMetric(id,value){document.getElementById(id).innerHTML=value}
+function destroyCharts(){charts.forEach(c=>c.destroy());charts=[]}
+function interpolateMissing(values){
+ const out=[...values],valid=[];for(let i=0;i<out.length;i++)if(Number.isFinite(out[i]))valid.push(i);
+ if(!valid.length)return out;if(valid.length===1)return out.map(()=>out[valid[0]]);
+ for(let i=0;i<valid[0];i++)out[i]=out[valid[0]];
+ for(let p=0;p<valid.length-1;p++){const a=valid[p],b=valid[p+1],va=out[a],vb=out[b];for(let i=a+1;i<b;i++)out[i]=va+(vb-va)*(i-a)/(b-a)}
+ for(let i=valid[valid.length-1]+1;i<out.length;i++)out[i]=out[valid[valid.length-1]];
+ return out;
+}
+function smoothSeries(values,percentage){
+ const source=interpolateMissing(values);const p=Math.max(0,Math.min(100,percentage))/100;if(!p||source.length<3)return source;
+ const radius=Math.max(1,Math.round(p*10)),passes=1+Math.floor(p*2);let result=[...source];
+ for(let pass=0;pass<passes;pass++){const next=[];for(let i=0;i<result.length;i++){let sum=0,weight=0;for(let j=Math.max(0,i-radius);j<=Math.min(result.length-1,i+radius);j++){const w=radius+1-Math.abs(j-i);sum+=result[j]*w;weight+=w}next[i]=sum/weight}result=next}
+ return source.map((v,i)=>v*(1-p)+result[i]*p);
+}
+function graphSmoothingValue(canvasId){
+ const slider=document.querySelector(`.graph-smoothing[data-chart="${canvasId}"]`);return slider?Number(slider.value):0;
+}
+function applyGraphSmoothing(slider){
+ const canvasId=slider.dataset.chart,pct=Number(slider.value);
+ const output=document.getElementById(`${slider.id}-value`);if(output)output.value=`${pct}%`;
+ const chart=charts.find(c=>c.canvas.id===canvasId);if(!chart)return;
+ chart.data.datasets.forEach(ds=>{if(ds._sourceData)ds.data=smoothSeries(ds._sourceData,pct)});chart.update('none');
+}
+function baseOptions(extra={}){return{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#f8fafc',boxWidth:12}},decimation:{enabled:true,algorithm:'lttb',samples:500}},elements:{point:{radius:0,hitRadius:5},line:{borderWidth:2}},scales:{x:{ticks:{color:'#94a3b8',maxTicksLimit:8},grid:{color:'#334155'}},y:{ticks:{color:'#94a3b8'},grid:{color:'#334155'}}},...extra}}
+function line(canvas,labels,datasets,options){
+ const pct=graphSmoothingValue(canvas);datasets.forEach(ds=>{ds._sourceData=[...ds.data];ds.data=smoothSeries(ds._sourceData,pct);ds.spanGaps=true});
+ const c=new Chart(document.getElementById(canvas),{type:'line',data:{labels,datasets},options:baseOptions(options)});charts.push(c)
+}
+function latestActivePosition(){
+ if(!timelineState)return null;
+ for(let i=timelineState.activeCount-1;i>=0;i--)if(timelineState.pathByRow[i])return timelineState.pathByRow[i];
+ return null;
+}
+function setPlaybackState(playing){
+ const button=document.getElementById('timelinePlay'),icon=document.getElementById('timelinePlayIcon');
+ button.dataset.playing=String(playing);button.title=playing?'Pause timeline':'Play timeline';button.setAttribute('aria-label',button.title);
+ icon.innerHTML=playing?'<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>':'<path d="M8 5v14l11-7z"/>';
+}
+function stopPlayback(){if(playbackTimer){clearInterval(playbackTimer);playbackTimer=null}setPlaybackState(false)}
+function startPlayback(){
+ if(!timelineState||timelineState.total<2)return;
+ const slider=document.getElementById('timelineSlider');if(Number(slider.value)>=timelineState.total)slider.value=1;
+ stopPlayback();setPlaybackState(true);
+ playbackTimer=setInterval(()=>{
+  const next=Number(slider.value)+1;
+  if(next>timelineState.total){stopPlayback();return}
+  slider.value=next;updateTimelineView();
+  if(next>=timelineState.total)stopPlayback();
+ },180);
+}
+function fitCompleteRoute(){
+ if(!timelineState)return;const full=timelineState.pathByRow.filter(Boolean);if(!full.length)return;
+ if(full.length===1)map.setView(full[0],16);else map.fitBounds(L.latLngBounds(full),{padding:[30,30],maxZoom:17});
+}
+function setFollowCurrent(active){
+ followCurrent=active;const button=document.getElementById('mapZoomActive');button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
+ if(followTimer){clearInterval(followTimer);followTimer=null}
+ if(active){zoomToActivePosition();followTimer=setInterval(zoomToActivePosition,2500)}
+}
+function zoomToActivePosition(){const position=latestActivePosition();if(position)map.flyTo(position,Math.max(map.getZoom(),16),{duration:.5})}
+function updateTimelineView(){
+ if(!timelineState)return;
+ const slider=document.getElementById('timelineSlider');
+ const count=Math.max(1,Math.min(timelineState.total,Number(slider.value)));
+ timelineState.activeCount=count;
+ const pct=Math.round(count/timelineState.total*100);
+ const time=timelineState.labels[count-1]||'--:--:--';
+ document.getElementById('timelineValue').value=`${pct}% • ${time}`;
+
+ const activePath=timelineState.pathByRow.slice(0,count).filter(Boolean);
+ route.setLatLngs(activePath);
+ if(endMarker)map.removeLayer(endMarker);
+ if(activePath.length){endMarker=L.marker(activePath[activePath.length-1]).addTo(map).bindPopup(`Active point: ${time}`)}
+
+ const a=name=>timelineState.series[name].slice(0,count);
+ setMetric('m-speed',fmt(lastValid(a('obdSpeed')),1,'km/h'));
+ setMetric('m-rpm',fmt(maximum(a('rpm')),0,'rpm'));
+ setMetric('m-rpm-current',fmt(lastValid(a('rpm')),0,'rpm'));
+ setMetric('m-load',fmt(lastValid(a('load')),1,'%'));
+ setMetric('m-flow',fmt(average(a('load')),1,'%'));
+ setMetric('m-iat',fmt(average(a('iat')),1,'°C'));
+ setMetric('m-sats',fmt(maximum(a('sats')),0));
+ setMetric('m-volt',fmt(average(a('adapterV')),2,'V'));
+ setMetric('m-battery',fmt(lastValid(a('battery')),0,'%'));
+ setMetric('m-points',`${count} <small>/ ${timelineState.total}</small>`);
+ charts.forEach(chart=>chart.draw());
+}
+function processCSV(text,fileName=''){
+ Papa.parse(text,{header:true,skipEmptyLines:'greedy',dynamicTyping:false,complete:({data,meta,errors})=>{
+  if(!data.length||!meta.fields?.length){showError('No usable rows or header fields were found.');return}
+  const f=meta.fields;
+  const k={time:findKey(f,'Device Time'),lat:findKey(f,'Latitude','GPS Latitude(°)'),lng:findKey(f,'Longitude','GPS Longitude(°)'),gpsSpeed:findKey(f,'Speed (GPS)(km/h)'),obdSpeed:findKey(f,'Speed (OBD)(km/h)'),sats:findKey(f,'GPS Satellites'),adapterV:findKey(f,'Voltage (OBD Adapter)(V)'),moduleV:findKey(f,'Voltage (Control Module)(V)'),gx:findKey(f,'G(x)'),gy:findKey(f,'G(y)'),gz:findKey(f,'G(z)'),gcal:findKey(f,'G(calibrated)'),accTotal:findKey(f,'Acceleration Sensor(Total)(g)'),accX:findKey(f,'Acceleration Sensor(X axis)(g)'),accY:findKey(f,'Acceleration Sensor(Y axis)(g)'),accZ:findKey(f,'Acceleration Sensor(Z axis)(g)'),battery:findKey(f,'Android device Battery Level(%)'),load:findKey(f,'Engine Load(%)'),rpm:findKey(f,'Engine RPM(rpm)'),fuelFlow:findKey(f,'Fuel flow rate/hour(l/hr)'),accuracy:findKey(f,'GPS Accuracy(m)'),altitude:findKey(f,'GPS Altitude(m)','Altitude'),bearing:findKey(f,'GPS Bearing(°)','Bearing'),iat:findKey(f,'Intake Air Temperature(°C)'),kplLong:findKey(f,'Kilometers Per Litre(Long Term Average)(kpl)'),l100Long:findKey(f,'Litres Per 100 Kilometer(Long Term Average)(l/100km)'),mpgLong:findKey(f,'Miles Per Gallon(Long Term Average)(mpg)'),odometer:findKey(f,'Odometer(from ECU)(km)'),tripKpl:findKey(f,'Trip average KPL(kpl)'),tripL100:findKey(f,'Trip average Litres/100 KM(l/100km)'),speedDiff:findKey(f,'GPS vs OBD Speed difference(km/h)'),hdop:findKey(f,'Horizontal Dilution of Precision')};
+  const s={};Object.entries(k).forEach(([n,key])=>s[n]=series(data,key));
+  const rawPowertrain={rpm:[...s.rpm],fuelFlow:[...s.fuelFlow],tripL100:[...s.tripL100]};
+  const powertrainFiltered=contextualPowertrainFilter(rawPowertrain,s.obdSpeed,s.load);
+  s.rpm=powertrainFiltered.rpm;s.fuelFlow=powertrainFiltered.fuelFlow;s.tripL100=powertrainFiltered.tripL100;
+  const times=data.map(r=>parseTime(k.time?r[k.time]:null));const labels=times.map(t=>t.time);const date=times.find(t=>t.date)?.date||'Date N/A';
+  document.getElementById('display-date').textContent=date;document.getElementById('file-name').textContent=fileName?`• ${fileName}`:'';
+  setMetric('m-speed',fmt(lastValid(s.obdSpeed),1,'km/h'));setMetric('m-rpm',fmt(maximum(s.rpm),0,'rpm'));setMetric('m-rpm-current',fmt(lastValid(s.rpm),0,'rpm'));setMetric('m-load',fmt(lastValid(s.load),1,'%'));setMetric('m-flow',fmt(average(s.load),1,'%'));setMetric('m-iat',fmt(average(s.iat),1,'°C'));setMetric('m-sats',fmt(maximum(s.sats),0));setMetric('m-volt',fmt(average(s.adapterV),2,'V'));setMetric('m-battery',fmt(lastValid(s.battery),0,'%'));setMetric('m-points',String(data.length));
+  const pathByRow=data.map((r,i)=>Number.isFinite(s.lat[i])&&Number.isFinite(s.lng[i])&&Math.abs(s.lat[i])<=90&&Math.abs(s.lng[i])<=180?[s.lat[i],s.lng[i]]:null);const path=pathByRow.filter(Boolean);
+  route.setLatLngs(path);if(startMarker)map.removeLayer(startMarker);if(endMarker)map.removeLayer(endMarker);if(path.length){startMarker=L.marker(path[0]).addTo(map).bindPopup('Start');endMarker=L.marker(path[path.length-1]).addTo(map).bindPopup('End');if(path.length===1)map.setView(path[0],16);else map.fitBounds(route.getBounds(),{padding:[30,30],maxZoom:17})}
+  const summary=[['Rows',data.length],['GPS points',path.length],['Avg GPS accuracy',fmt(average(s.accuracy),1,'m')],['Avg HDOP',fmt(average(s.hdop),2)],['Altitude range',`${fmt(Math.min(...s.altitude.filter(Number.isFinite)),1,'m')} – ${fmt(Math.max(...s.altitude.filter(Number.isFinite)),1,'m')}`],['Max OBD Speed',fmt(maximum(s.obdSpeed),1,'km/h')],['Average RPM (filtered)',fmt(average(s.rpm),0,'rpm')],['Max RPM (filtered)',fmt(maximum(s.rpm),0,'rpm')],['RPM readings filtered',powertrainFiltered.counts.rpm],['Average fuel flow (filtered)',fmt(average(s.fuelFlow),2,'l/hr')],['Raw max fuel flow',fmt(maximum(rawPowertrain.fuelFlow),2,'l/hr')],['Fuel-flow readings filtered',powertrainFiltered.counts.fuelFlow],['Long-term economy',fmt(lastValid(s.l100Long),2,'l/100km')],['Long-term KPL',fmt(lastValid(s.kplLong),2,'km/l')],['Long-term MPG',fmt(lastValid(s.mpgLong),2,'mpg')],['Trip economy (filtered)',fmt(lastValid(s.tripL100),2,'l/100km')],['Raw trip economy',fmt(lastValid(rawPowertrain.tripL100),2,'l/100km')],['Trip-economy readings filtered',powertrainFiltered.counts.tripL100],['Trip KPL',fmt(lastValid(s.tripKpl),2,'km/l')],['Odometer',fmt(lastValid(s.odometer),1,'km')],['Max acceleration',fmt(maximum(s.accTotal),2,'g')],['Average speed difference',fmt(average(s.speedDiff),2,'km/h')],['Control module voltage',fmt(average(s.moduleV),2,'V')],['CSV columns detected',f.length]];
+  document.getElementById('parameter-grid').innerHTML=summary.map(([a,b])=>`<div class="parameter"><span>${a}</span><strong>${b}</strong></div>`).join('');
+  destroyCharts();
+  line('speedChart',labels,[{label:'OBD speed (km/h)',data:s.obdSpeed,borderColor:'#38bdf8',spanGaps:true},{label:'GPS speed (km/h)',data:s.gpsSpeed,borderColor:'#4ade80',spanGaps:true}]);
+  line('engineChart',labels,[{label:'RPM filtered',data:s.rpm,borderColor:'#fbbf24',yAxisID:'y'},{label:'RPM raw',data:rawPowertrain.rpm,borderColor:'rgba(251,191,36,.22)',borderWidth:1,yAxisID:'y'},{label:'Engine load (%)',data:s.load,borderColor:'#f87171',yAxisID:'y1'}],{scales:{x:{ticks:{color:'#94a3b8',maxTicksLimit:8},grid:{color:'#334155'}},y:{position:'left',ticks:{color:'#fbbf24'},grid:{color:'#334155'}},y1:{position:'right',ticks:{color:'#f87171'},grid:{drawOnChartArea:false}}}});
+  line('fuelChart',labels,[{label:'Fuel flow filtered (l/hr)',data:s.fuelFlow,borderColor:'#a78bfa',yAxisID:'y'},{label:'Fuel flow raw',data:rawPowertrain.fuelFlow,borderColor:'rgba(167,139,250,.20)',borderWidth:1,yAxisID:'y'},{label:'Trip l/100km filtered',data:s.tripL100,borderColor:'#4ade80',yAxisID:'y1'},{label:'Trip l/100km raw',data:rawPowertrain.tripL100,borderColor:'rgba(74,222,128,.18)',borderWidth:1,yAxisID:'y1'}],{scales:{x:{ticks:{color:'#94a3b8',maxTicksLimit:8},grid:{color:'#334155'}},y:{position:'left',ticks:{color:'#a78bfa'},grid:{color:'#334155'}},y1:{position:'right',ticks:{color:'#4ade80'},grid:{drawOnChartArea:false}}}});
+  line('accelChart',labels,[{label:'Total (g)',data:s.accTotal,borderColor:'#f8fafc'},{label:'X (g)',data:s.accX,borderColor:'#f87171'},{label:'Y (g)',data:s.accY,borderColor:'#fbbf24'},{label:'Z (g)',data:s.accZ,borderColor:'#4ade80'}]);
+  line('gForceChart',labels,[{label:'G(x)',data:s.gx,borderColor:'#f87171'},{label:'G(y)',data:s.gy,borderColor:'#fbbf24'},{label:'G(z)',data:s.gz,borderColor:'#a78bfa'},{label:'G calibrated',data:s.gcal,borderColor:'#38bdf8'}]);
+  timelineState={total:data.length,activeCount:data.length,labels,pathByRow,series:s};
+  const timelineSlider=document.getElementById('timelineSlider');timelineSlider.max=data.length;timelineSlider.value=data.length;timelineSlider.disabled=data.length<2;
+  updateTimelineView();
+  const warning=errors.length?` ${errors.length} CSV parsing warning(s) were reported.`:'';document.getElementById('status').className='status';document.getElementById('status').textContent=`Loaded ${data.length} rows and detected ${f.length} columns. Filtered ${powertrainFiltered.counts.rpm} RPM, ${powertrainFiltered.counts.fuelFlow} fuel-flow, and ${powertrainFiltered.counts.tripL100} trip-economy reading(s) using engine-load context. OBD speed is used only for the trip-economy low-speed safeguard.${warning}`;setTimeout(()=>map.invalidateSize(),100);
+ }});
+}
+function showError(msg){const el=document.getElementById('status');el.className='status error';el.textContent=msg}
+document.querySelectorAll('.collapse-toggle').forEach(button=>button.addEventListener('click',()=>{
+ const panel=button.closest('.collapsible-chart');
+ const collapsed=panel.classList.toggle('collapsed');
+ button.setAttribute('aria-expanded',String(!collapsed));
+ const title=panel.querySelector('h2').textContent;
+ button.setAttribute('aria-label',`${collapsed?'Expand':'Collapse'} ${title}`);
+ if(!collapsed){
+  const canvas=panel.querySelector('canvas');
+  const chart=charts.find(c=>c.canvas===canvas);
+  requestAnimationFrame(()=>{if(chart)chart.resize()});
+ }
+}));
+document.querySelectorAll('.graph-smoothing').forEach(slider=>slider.addEventListener('input',()=>applyGraphSmoothing(slider)));
+document.getElementById('timelineSlider').addEventListener('input',()=>{stopPlayback();updateTimelineView()});
+document.getElementById('timelineStart').addEventListener('click',()=>{stopPlayback();document.getElementById('timelineSlider').value=1;updateTimelineView()});
+document.getElementById('timelineEnd').addEventListener('click',()=>{stopPlayback();if(timelineState){document.getElementById('timelineSlider').value=timelineState.total;updateTimelineView()}});
+document.getElementById('timelinePlay').addEventListener('click',()=>playbackTimer?stopPlayback():startPlayback());
+document.getElementById('mapZoomActive').addEventListener('click',()=>setFollowCurrent(!followCurrent));
+document.getElementById('mapFitRoute').addEventListener('click',()=>{setFollowCurrent(false);fitCompleteRoute()});
+map.on('dragstart zoomstart',()=>{if(followCurrent)setFollowCurrent(false)});
+document.getElementById('csvFileInput').addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;if(!file.name.toLowerCase().endsWith('.csv')){showError('Please select a .csv file.');return}const reader=new FileReader();reader.onload=ev=>{stopPlayback();processCSV(ev.target.result,file.name)};reader.onerror=()=>showError('The file could not be read.');reader.readAsText(file)});
+async function tryLoadDefaultCSV(){
+ try{
+  const name='trackLog-2026-example_data.csv';
+  const response=await fetch(`./assets/${name}`,{cache:'no-store'});
+  if(!response.ok)return;
+  processCSV(await response.text(),name);
+ }catch(_){/* Missing or inaccessible default file: stay empty silently. */}
+}
+window.addEventListener('load',tryLoadDefaultCSV);
+</script>
+</body>
+</html>
