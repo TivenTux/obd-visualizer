@@ -13,7 +13,9 @@
     *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
     header{position:sticky;top:0;z-index:1000;padding:1rem 1.5rem;background:rgba(30,41,59,.96);display:flex;justify-content:space-between;align-items:center;gap:1rem;box-shadow:0 4px 14px rgba(0,0,0,.25);backdrop-filter:blur(8px)}
     .title{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap} h1{margin:0;font-size:1.25rem}.divider{color:var(--dim)} .log-date{color:var(--accent);font-weight:600}.file-name{color:var(--dim);font-size:.85rem}
-    input[type=file]{display:none}.upload{display:inline-block;background:#0284c7;color:#fff;padding:.6rem 1rem;border-radius:8px;cursor:pointer;font-weight:600;white-space:nowrap}.upload:hover{background:#0369a1}
+    input[type=file]{display:none}.upload{display:inline-flex;align-items:center;background:#0284c7;color:#fff;padding:.6rem 1rem;border-radius:8px;cursor:pointer;font-weight:600;white-space:nowrap}.upload:hover{background:#0369a1}
+    .import-controls{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+    .format-select{height:100%;align-self:stretch;background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:.6rem .75rem;font:inherit;font-weight:600;cursor:pointer}.format-select:hover{border-color:var(--accent)}.format-select:focus{outline:none;border-color:var(--accent)}
     .status{margin:1rem 1.5rem 0;padding:.75rem 1rem;border:1px solid var(--border);border-radius:8px;background:var(--card2);color:var(--dim)}
     .chart-control{display:grid;grid-template-columns:auto minmax(100px,1fr) 52px;gap:.65rem;align-items:center;margin:0 0 .65rem}.chart-control label{font-size:.78rem;color:var(--dim);font-weight:650}.chart-control input{width:100%;accent-color:var(--accent)}.smooth-value{color:var(--accent);font-size:.8rem;font-weight:750;text-align:right}.status.error{border-color:var(--danger);color:#fecaca}
     .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:1rem;padding:1rem 1.5rem 0}.metric{background:var(--card);padding:1rem;border-radius:10px;border:1px solid var(--border)}
@@ -27,7 +29,13 @@
 <body>
 <header>
   <div class="title"><h1>OBD Data Visualizer</h1><span class="divider">|</span><span id="display-date" class="log-date">No CSV loaded</span><span id="file-name" class="file-name"></span></div>
-  <label for="csvFileInput" class="upload">Import CSV</label><input type="file" id="csvFileInput" accept=".csv,text/csv">
+  <div class="import-controls">
+    <select id="dataFormatSelect" class="format-select" title="Format of the log data being imported">
+      <option value="torque-pro" selected>Torque Pro</option>
+      <option value="car-scanner-elm">Car Scanner ELM</option>
+    </select>
+    <label for="csvFileInput" class="upload">Import Data</label><input type="file" id="csvFileInput" accept=".csv,text/csv">
+  </div>
 </header>
 <div id="status" class="status">Select a Torque CSV export. All processing stays in your browser.</div>
 
@@ -269,7 +277,7 @@ document.getElementById('timelinePlay').addEventListener('click',()=>playbackTim
 document.getElementById('mapZoomActive').addEventListener('click',()=>setFollowCurrent(!followCurrent));
 document.getElementById('mapFitRoute').addEventListener('click',()=>{setFollowCurrent(false);fitCompleteRoute()});
 map.on('dragstart zoomstart',()=>{if(followCurrent)setFollowCurrent(false)});
-document.getElementById('csvFileInput').addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;if(!file.name.toLowerCase().endsWith('.csv')){showError('Please select a .csv file.');return}const reader=new FileReader();reader.onload=ev=>{stopPlayback();processCSV(ev.target.result,file.name)};reader.onerror=()=>showError('The file could not be read.');reader.readAsText(file)});
+document.getElementById('csvFileInput').addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;const format=document.getElementById('dataFormatSelect').value;if(format!=='torque-pro'){showError('That import format is not supported yet. Only Torque Pro logs can be imported for now.');e.target.value='';return}if(!file.name.toLowerCase().endsWith('.csv')){showError('Please select a .csv file.');return}const reader=new FileReader();reader.onload=ev=>{stopPlayback();processCSV(ev.target.result,file.name)};reader.onerror=()=>showError('The file could not be read.');reader.readAsText(file)});
 async function tryLoadDefaultCSV(){
  try{
   const name='trackLog-2026-example_data.csv';
