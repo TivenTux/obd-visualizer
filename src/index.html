@@ -23,6 +23,7 @@
     main{padding:1rem 1.5rem 2rem}.top-grid{display:grid;grid-template-columns:minmax(300px,1.1fr) minmax(360px,1fr);gap:1rem}.panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem;min-width:0}.panel h2{font-size:.95rem;margin:0;color:#e2e8f0}.chart-header{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.75rem}.collapse-toggle{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--border);border-radius:8px;background:var(--card2);color:var(--accent);cursor:pointer;transition:background .2s,transform .2s}.collapse-toggle:hover{background:#243247}.collapse-toggle svg{width:18px;height:18px;transition:transform .2s}.collapsible-chart.collapsed{height:auto;min-height:0}.collapsible-chart.collapsed .chart-body{display:none}.collapsible-chart.collapsed .chart-header{margin-bottom:0}.collapsible-chart.collapsed .collapse-toggle svg{transform:rotate(-90deg)}
     #map{height:530px;border-radius:8px}.timeline-control{margin-top:.85rem;padding:.75rem;background:var(--card2);border-radius:8px}.timeline-row{display:grid;grid-template-columns:auto minmax(140px,1fr) auto;gap:.75rem;align-items:center}.timeline-row label{font-size:.8rem;color:var(--dim);font-weight:650}.timeline-row input{width:100%;accent-color:var(--accent)}.timeline-value{color:var(--accent);font-size:.8rem;font-weight:750;min-width:118px;text-align:right}.timeline-help{color:var(--dim);font-size:.72rem;margin-top:.4rem}.timeline-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.65rem}.icon-button{height:34px;min-width:36px;padding:0 .65rem;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;border:1px solid var(--border);border-radius:8px;background:#243247;color:var(--text);cursor:pointer;font-weight:650;font-size:.76rem}.icon-button.active{background:#166534;border-color:#4ade80;color:#dcfce7}.icon-button:hover{background:#334155}.icon-button:disabled{opacity:.45;cursor:not-allowed}.icon-button svg{width:16px;height:16px;fill:currentColor}.map-actions{margin-left:auto}.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-top:1rem}.chart-box{height:375px}.chart-box.wide{grid-column:span 2}.chart-wrap{position:relative;height:275px}
     .parameter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.5rem}.parameter{display:flex;justify-content:space-between;gap:1rem;padding:.55rem .7rem;background:var(--card2);border-radius:6px;font-size:.84rem}.parameter span:first-child{color:var(--dim)}.parameter strong{color:#e2e8f0;text-align:right}
+    .graph-toggle-panel{margin-top:1rem}.graph-toggles{display:flex;flex-wrap:wrap;gap:.75rem}.graph-toggle{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem .75rem;background:var(--card2);border-radius:6px;font-size:.84rem;cursor:pointer}.graph-toggle input{accent-color:var(--accent);cursor:pointer}
     @media(max-width:1000px){.top-grid{grid-template-columns:1fr}#map{height:390px}} @media(max-width:720px){header{align-items:flex-start}.charts{grid-template-columns:1fr}.chart-box.wide{grid-column:auto}.metrics,main{padding-left:.75rem;padding-right:.75rem}.status{margin-left:.75rem;margin-right:.75rem}.chart-control{grid-template-columns:auto 1fr 48px}}
   </style>
 </head>
@@ -56,6 +57,7 @@
     <section class="panel"><h2>GPS Route</h2><div id="map"></div><div class="timeline-control"><div class="timeline-row"><label for="timelineSlider">Timeline</label><input type="range" id="timelineSlider" min="1" max="1" value="1" step="1" disabled><output id="timelineValue" class="timeline-value">100%</output></div><div class="timeline-actions"><button id="timelineStart" class="icon-button" type="button" title="Skip to start" aria-label="Skip to start"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6V5zm3.5 7L18 5v14l-8.5-7z"/></svg></button><button id="timelinePlay" class="icon-button" type="button" title="Play timeline" aria-label="Play timeline"><svg id="timelinePlayIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button id="timelineEnd" class="icon-button" type="button" title="Skip to end" aria-label="Skip to end"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2V5zM6 5l8.5 7L6 19V5z"/></svg></button><span class="map-actions"></span><button id="mapZoomActive" class="icon-button" type="button" title="Follow the current playback position"><svg viewBox="0 0 24 24"><path d="M9 3a6 6 0 104.47 10l5.76 5.77 1.42-1.42-5.77-5.76A6 6 0 009 3zm0 2a4 4 0 110 8 4 4 0 010-8zm-1 2v2H6v2h2v2h2v-2h2V9h-2V7H8z"/></svg>Follow</button><button id="mapFitRoute" class="icon-button" type="button" title="Show the complete route"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/></svg>Full route</button></div><div class="timeline-help">Play or drag through the journey. Future graph data is shaded. Follow keeps the map centered near the latest available GPS position, while Full route restores the initial fitted view.</div></div></section>
     <section class="panel"><h2>Available parameter summary</h2><div id="parameter-grid" class="parameter-grid"></div></section>
   </div>
+  <section class="panel graph-toggle-panel"><h2>Show Graphs</h2><div class="graph-toggles"><label class="graph-toggle"><input type="checkbox" id="toggle-accel-graphs"> Acceleration/G sensors</label></div></section>
   <div class="charts">
     <section class="panel chart-box wide"><h2>Vehicle speed</h2><div class="chart-control"><label for="smooth-speed">Speed smoothing</label><input class="graph-smoothing" data-chart="speedChart" type="range" id="smooth-speed" min="0" max="100" value="0" step="1"><output id="smooth-speed-value" class="smooth-value">0%</output></div><div class="chart-wrap"><canvas id="speedChart"></canvas></div></section>
     <section class="panel chart-box collapsible-chart" data-chart-panel="engineChart"><div class="chart-header"><h2>Engine RPM and load</h2><button type="button" class="collapse-toggle" aria-expanded="true" aria-label="Collapse Engine RPM and load" title="Collapse or expand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="chart-body"><div class="chart-control"><label for="smooth-engine">Engine smoothing</label><input class="graph-smoothing" data-chart="engineChart" type="range" id="smooth-engine" min="0" max="100" value="0" step="1"><output id="smooth-engine-value" class="smooth-value">0%</output></div><div class="chart-wrap"><canvas id="engineChart"></canvas></div></div></section>
@@ -257,9 +259,9 @@ function processCSV(text,fileName=''){
  }});
 }
 function showError(msg){const el=document.getElementById('status');el.className='status error';el.textContent=msg}
-document.querySelectorAll('.collapse-toggle').forEach(button=>button.addEventListener('click',()=>{
- const panel=button.closest('.collapsible-chart');
- const collapsed=panel.classList.toggle('collapsed');
+function setChartPanelCollapsed(panel,collapsed){
+ const button=panel.querySelector('.collapse-toggle');
+ panel.classList.toggle('collapsed',collapsed);
  button.setAttribute('aria-expanded',String(!collapsed));
  const title=panel.querySelector('h2').textContent;
  button.setAttribute('aria-label',`${collapsed?'Expand':'Collapse'} ${title}`);
@@ -268,7 +270,28 @@ document.querySelectorAll('.collapse-toggle').forEach(button=>button.addEventLis
   const chart=charts.find(c=>c.canvas===canvas);
   requestAnimationFrame(()=>{if(chart)chart.resize()});
  }
+}
+document.querySelectorAll('.collapse-toggle').forEach(button=>button.addEventListener('click',()=>{
+ const panel=button.closest('.collapsible-chart');
+ setChartPanelCollapsed(panel,!panel.classList.contains('collapsed'));
 }));
+const ACCEL_GRAPH_PANELS=['accelChart','gForceChart'];
+const ACCEL_GRAPH_PREF_KEY='obd-viz-show-accel-graphs';
+const accelGraphsToggle=document.getElementById('toggle-accel-graphs');
+function applyAccelGraphsVisibility(shown){
+ ACCEL_GRAPH_PANELS.forEach(id=>{
+  const panel=document.querySelector(`.collapsible-chart[data-chart-panel="${id}"]`);
+  if(panel)setChartPanelCollapsed(panel,!shown);
+ });
+}
+const storedAccelPref=localStorage.getItem(ACCEL_GRAPH_PREF_KEY);
+const accelGraphsShown=storedAccelPref===null?true:storedAccelPref==='true';
+accelGraphsToggle.checked=accelGraphsShown;
+applyAccelGraphsVisibility(accelGraphsShown);
+accelGraphsToggle.addEventListener('change',()=>{
+ localStorage.setItem(ACCEL_GRAPH_PREF_KEY,String(accelGraphsToggle.checked));
+ applyAccelGraphsVisibility(accelGraphsToggle.checked);
+});
 document.querySelectorAll('.graph-smoothing').forEach(slider=>slider.addEventListener('input',()=>applyGraphSmoothing(slider)));
 document.getElementById('timelineSlider').addEventListener('input',()=>{stopPlayback();updateTimelineView()});
 document.getElementById('timelineStart').addEventListener('click',()=>{stopPlayback();document.getElementById('timelineSlider').value=1;updateTimelineView()});
