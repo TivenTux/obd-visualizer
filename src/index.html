@@ -302,7 +302,7 @@ map.on('dragstart zoomstart',()=>{if(followCurrent)setFollowCurrent(false)});
 document.getElementById('csvFileInput').addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;const format=document.getElementById('dataFormatSelect').value;if(format!=='torque-pro'){showError('That import format is not supported yet. Only Torque Pro logs can be imported for now.');e.target.value='';return}if(!file.name.toLowerCase().endsWith('.csv')){showError('Please select a .csv file.');return}const reader=new FileReader();reader.onload=ev=>{stopPlayback();processCSV(ev.target.result,file.name)};reader.onerror=()=>showError('The file could not be read.');reader.readAsText(file)});
 async function tryLoadDefaultCSV(){
  try{
-  const name='trackLog-2026-example_data.csv';
+  const name='trackLog-2026-example_data_sim.csv';
   const response=await fetch(`./assets/${name}`,{cache:'no-store'});
   if(!response.ok)return;
   processCSV(await response.text(),name);
