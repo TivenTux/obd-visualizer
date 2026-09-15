@@ -9,16 +9,18 @@ _Torque > Settings > Data Logging & Upload > Select what to log_
 * Engine Temp
 * Fuel flow rate/hour
 
-* _GPS data if  you want to use the map - Screen on & Torque window active, until Torque dev updates android api_
-    * Gps Accuracy
-    * GPS Altitude
-    * GPS Latitude
-    * GPS Longitude
-    * GPS Satellites
+_GPS data if  you want to use the map - Screen on & Torque window active, until Torque dev updates android api_
+* Gps Accuracy
+* GPS Altitude
+* GPS Latitude
+* GPS Longitude
+* GPS Satellites
 
 * Intake Air Temperature
 * Kilometers Per Litre(Long Term Average)
 * Litres Per 100 Kilometer(Long Term Average)
 * Speed (OBD)
 * Voltage (OBD Adapter)
+
+If you use additional sensors, PIDs or data points, open issue and request and it will be added.
 
