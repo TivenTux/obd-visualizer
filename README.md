@@ -1,6 +1,10 @@
 # obd-visualizer
 torque pro / OBD data visualizer
 
+
+![alt text](https://github.com/TivenTux/obd-visualizer/blob/main/src/assets/demo_2107.png?raw=true)
+
+
 Will try to capture most of the usable data, but it is advisable you select/enable the following data inputs on Torque:
 _Torque > Settings > Data Logging & Upload > Select what to log_
 
