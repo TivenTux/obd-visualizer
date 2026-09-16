@@ -36,3 +36,6 @@ _GPS data if  you want to use the map - Screen on & Torque window active, until 
 
 If you use additional sensors, PIDs or data points, open issue and request and it will be added.
 
+
+Currently supports Torque Pro, will support Car Scanner ELM at a later date.
+
