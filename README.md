@@ -32,14 +32,14 @@ _GPS data if  you want to use the map - Screen on & Torque window active, until 
 * Speed (OBD)
 * Speed (GPS)
 * Voltage (OBD Adapter)
-
+  
 
 If you use additional sensors, PIDs or data points, open issue and request and it will be added.
+  
 
-
-Currently supports Torque Pro, will support Car Scanner ELM at a later date.
-
-* _It seems that some combinations of car/OBD adaptors work fine for every other PID, but the engine temperature PID is always returned with one byte missing or corrupted. This can be fixed in Torque Pro by creating a custom PID that skips the corrupt byte (In settings go to "Manage Extra PIDS" / "Add custom PID") as follows:_
+Currently supports Torque Pro, will support Car Scanner ELM at a later date.  
+  
+_It seems that some combinations of car/OBD adaptors work fine for every other PID, but the engine temperature PID is always returned with one byte missing or corrupted. This can be fixed in Torque Pro by creating a custom PID that skips the corrupt byte (In settings go to "Manage Extra PIDS" / "Add custom PID") as follows:_
 
 ```PID: 0105
 Name: Engine Temp
@@ -47,5 +47,5 @@ Minimum Value: 0
 Maximum Value: 130
 Scale Factor: x1
 Unit Type: ºC
-Equation: R1-40```
+Equation: R1-40
 
