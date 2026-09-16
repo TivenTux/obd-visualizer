@@ -31,9 +31,9 @@ _GPS data if  you want to use the map - Screen on & Torque window active, until 
 * Odometer
 * Speed (OBD)
 * Speed (GPS)
-* Voltage (OBD Adapter)
+* Voltage (OBD Adapter)  
   
-
+  
 If you use additional sensors, PIDs or data points, open issue and request and it will be added.
   
 
