@@ -36,11 +36,10 @@ _GPS data if  you want to use the map - Screen on & Torque window active, until 
 * Voltage (OBD Adapter)  
   
 <br><br>
-If you use additional sensors, PIDs or data points, open issue and request and it will be added.
+_If you use additional sensors, PIDs or data points, open issue and request and it will be added._
 <br>
 
-Currently supports Torque Pro, will support Car Scanner ELM at a later date.  
-No data is uploaded. All processing stays in your browser.  
+
 <br>
 _It seems that some combinations of car/OBD adaptors work fine for every other PID, but the engine temperature PID is always returned with one byte missing or corrupted. This can be fixed in Torque Pro by creating a custom PID that skips the corrupt byte (In settings go to "Manage Extra PIDS" / "Add custom PID") as follows:_
 
@@ -53,3 +52,10 @@ Scale Factor: x1
 Unit Type: ºC
 Equation: R1-40
 ```
+
+<br><br>
+Currently supports Torque Pro, will support Car Scanner ELM at a later date.  
+No data is uploaded. All processing stays in your browser.  
+<br><br>
+
+Because of browser CORS restrictions, for the JS to load correctly, webapp needs to be served with a webserver.
