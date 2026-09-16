@@ -119,7 +119,7 @@ export function processCSV(text, fileName = '') {
       const warning = errors.length ? ` ${errors.length} CSV parsing warning(s) were reported.` : '';
       const statusEl = document.getElementById('status');
       statusEl.className = 'status';
-      statusEl.textContent = `Loaded ${data.length} rows and detected ${f.length} columns. Filtered ${powertrainFiltered.counts.rpm} RPM, ${powertrainFiltered.counts.fuelFlow} fuel-flow, and ${powertrainFiltered.counts.tripL100} trip-economy reading(s) using engine-load context. OBD speed is used only for the trip-economy low-speed safeguard.${warning}`;
+      statusEl.textContent = `Loaded ${data.length} rows and detected ${f.length} columns. Filtered ${powertrainFiltered.counts.rpm} RPM, ${powertrainFiltered.counts.fuelFlow} fuel-flow, and ${powertrainFiltered.counts.tripL100} trip-economy reading(s) using engine-load context.${warning}`;
       setTimeout(() => map.invalidateSize(), 100);
     }
   });
