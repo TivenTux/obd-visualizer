@@ -40,7 +40,7 @@ If you use additional sensors, PIDs or data points, open issue and request and i
 <br>
 
 Currently supports Torque Pro, will support Car Scanner ELM at a later date.  
-No data is uploaded. All processing happens locally on your device/computer.  
+No data is uploaded. All processing stays in your browser.  
 <br>
 _It seems that some combinations of car/OBD adaptors work fine for every other PID, but the engine temperature PID is always returned with one byte missing or corrupted. This can be fixed in Torque Pro by creating a custom PID that skips the corrupt byte (In settings go to "Manage Extra PIDS" / "Add custom PID") as follows:_
 
