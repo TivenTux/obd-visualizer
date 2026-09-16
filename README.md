@@ -57,6 +57,6 @@ Equation: R1-40
 <br><br>
 Currently supports Torque Pro, will support Car Scanner ELM at a later date.  
 No data is uploaded. All processing stays in your browser.  
-<br><br>
+<br>
 
 _Because of browser CORS restrictions, for the JS to load correctly, this needs to be served with a webserver._
