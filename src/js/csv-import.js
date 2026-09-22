@@ -124,7 +124,7 @@ export function processCSV(text, fileName = '') {
         { label: 'G calibrated', data: s.gcal, borderColor: '#38bdf8' }
       ]);
 
-      loadTimeline({ total: data.length, labels, pathByRow, series: s });
+      loadTimeline({ total: data.length, labels, pathByRow, series: s, hasEngineTemp });
 
       const warning = errors.length ? ` ${errors.length} CSV parsing warning(s) were reported.` : '';
       const statusEl = document.getElementById('status');

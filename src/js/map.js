@@ -120,15 +120,15 @@ export function updateTimelineView() {
   setMetric('m-load', fmt(lastValid(a('load')), 1, '%'));
   setMetric('m-flow', fmt(average(a('load')), 1, '%'));
   setMetric('m-iat', fmt(average(a('iat')), 1, '°C'));
-  setMetric('m-sats', fmt(maximum(a('sats')), 0));
+  setMetric('m-sats', timelineState.hasEngineTemp ? fmt(lastValid(a('engineTemp')), 1, '°C') : fmt(maximum(a('sats')), 0));
   setMetric('m-volt', fmt(average(a('adapterV')), 2, 'V'));
   setMetric('m-battery', fmt(lastValid(a('battery')), 0, '%'));
   setMetric('m-points', `${count} <small>/ ${timelineState.total}</small>`);
   appState.charts.forEach(chart => chart.draw());
 }
 
-export function loadTimeline({ total, labels, pathByRow, series }) {
-  appState.timelineState = { total, activeCount: total, labels, pathByRow, series };
+export function loadTimeline({ total, labels, pathByRow, series, hasEngineTemp }) {
+  appState.timelineState = { total, activeCount: total, labels, pathByRow, series, hasEngineTemp };
   const timelineSlider = document.getElementById('timelineSlider');
   timelineSlider.max = total;
   timelineSlider.value = total;
