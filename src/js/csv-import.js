@@ -1,6 +1,6 @@
 // Torque Pro CSV parsing: column detection, filtering, metrics, chart and map population.
 
-import { findKey, series, contextualPowertrainFilter, parseTime, fmt, lastValid, maximum, average } from './utils.js';
+import { findKey, series, contextualPowertrainFilter, parseTime, fmt, lastValid, maximum, average, smoothSeries } from './utils.js';
 import { setMetric, showError } from './dom.js';
 import { destroyCharts, renderLineChart } from './charts.js';
 import { map, renderInitialRoute, loadTimeline } from './map.js';
@@ -82,7 +82,7 @@ export function processCSV(text, fileName = '') {
       renderLineChart('speedChart', labels, [
         { label: 'OBD speed (km/h)', data: s.obdSpeed, borderColor: '#38bdf8', spanGaps: true },
         { label: 'GPS speed (km/h)', data: s.gpsSpeed, borderColor: '#4ade80', spanGaps: true },
-        ...(hasEngineTemp ? [{ label: 'Engine Temp (°C)', data: s.engineTemp, borderColor: '#fb923c', spanGaps: true, yAxisID: 'y1', noSmooth: true }] : [])
+        ...(hasEngineTemp ? [{ label: 'Engine Temp (°C)', data: smoothSeries(s.engineTemp, 45), borderColor: '#fb923c', spanGaps: true, yAxisID: 'y1', noSmooth: true }] : [])
       ], hasEngineTemp ? {
         scales: {
           x: { ticks: { color: '#94a3b8', maxTicksLimit: 8 }, grid: { color: '#334155' } },
