@@ -47,7 +47,7 @@ export function renderLineChart(canvas, labels, datasets, options) {
   const pct = graphSmoothingValue(canvas);
   datasets.forEach(ds => {
     ds._sourceData = [...ds.data];
-    ds.data = smoothSeries(ds._sourceData, pct);
+    ds.data = ds.noSmooth ? ds._sourceData : smoothSeries(ds._sourceData, pct);
     ds.spanGaps = true;
   });
   const chart = new Chart(document.getElementById(canvas), { type: 'line', data: { labels, datasets }, options: baseOptions(options) });
@@ -65,7 +65,7 @@ export function applyGraphSmoothing(slider) {
   if (output) output.value = `${pct}%`;
   const chart = appState.charts.find(c => c.canvas.id === canvasId);
   if (!chart) return;
-  chart.data.datasets.forEach(ds => { if (ds._sourceData) ds.data = smoothSeries(ds._sourceData, pct); });
+  chart.data.datasets.forEach(ds => { if (ds._sourceData && !ds.noSmooth) ds.data = smoothSeries(ds._sourceData, pct); });
   chart.update('none');
 }
 

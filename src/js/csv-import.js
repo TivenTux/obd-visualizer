@@ -24,7 +24,8 @@ export function processCSV(text, fileName = '') {
         battery: findKey(f, 'Android device Battery Level(%)'), load: findKey(f, 'Engine Load(%)'), rpm: findKey(f, 'Engine RPM(rpm)'),
         fuelFlow: findKey(f, 'Fuel flow rate/hour(l/hr)'), accuracy: findKey(f, 'GPS Accuracy(m)'),
         altitude: findKey(f, 'GPS Altitude(m)', 'Altitude'), bearing: findKey(f, 'GPS Bearing(°)', 'Bearing'),
-        iat: findKey(f, 'Intake Air Temperature(°C)'), kplLong: findKey(f, 'Kilometers Per Litre(Long Term Average)(kpl)'),
+        iat: findKey(f, 'Intake Air Temperature(°C)'), engineTemp: findKey(f, 'Engine Temp(°C)'),
+        kplLong: findKey(f, 'Kilometers Per Litre(Long Term Average)(kpl)'),
         l100Long: findKey(f, 'Litres Per 100 Kilometer(Long Term Average)(l/100km)'), mpgLong: findKey(f, 'Miles Per Gallon(Long Term Average)(mpg)'),
         odometer: findKey(f, 'Odometer(from ECU)(km)'), tripKpl: findKey(f, 'Trip average KPL(kpl)'), tripL100: findKey(f, 'Trip average Litres/100 KM(l/100km)'),
         speedDiff: findKey(f, 'GPS vs OBD Speed difference(km/h)'), hdop: findKey(f, 'Horizontal Dilution of Precision')
@@ -49,7 +50,9 @@ export function processCSV(text, fileName = '') {
       setMetric('m-load', fmt(lastValid(s.load), 1, '%'));
       setMetric('m-flow', fmt(average(s.load), 1, '%'));
       setMetric('m-iat', fmt(average(s.iat), 1, '°C'));
-      setMetric('m-sats', fmt(maximum(s.sats), 0));
+      const hasEngineTemp = k.engineTemp != null;
+      document.getElementById('m-sats-title').textContent = hasEngineTemp ? 'Engine Temp(°C)' : 'Satellites Locked';
+      setMetric('m-sats', hasEngineTemp ? fmt(lastValid(s.engineTemp), 1, '°C') : fmt(maximum(s.sats), 0));
       setMetric('m-volt', fmt(average(s.adapterV), 2, 'V'));
       setMetric('m-battery', fmt(lastValid(s.battery), 0, '%'));
       setMetric('m-points', String(data.length));
@@ -78,8 +81,15 @@ export function processCSV(text, fileName = '') {
       destroyCharts();
       renderLineChart('speedChart', labels, [
         { label: 'OBD speed (km/h)', data: s.obdSpeed, borderColor: '#38bdf8', spanGaps: true },
-        { label: 'GPS speed (km/h)', data: s.gpsSpeed, borderColor: '#4ade80', spanGaps: true }
-      ]);
+        { label: 'GPS speed (km/h)', data: s.gpsSpeed, borderColor: '#4ade80', spanGaps: true },
+        ...(hasEngineTemp ? [{ label: 'Engine Temp (°C)', data: s.engineTemp, borderColor: '#fb923c', spanGaps: true, yAxisID: 'y1', noSmooth: true }] : [])
+      ], hasEngineTemp ? {
+        scales: {
+          x: { ticks: { color: '#94a3b8', maxTicksLimit: 8 }, grid: { color: '#334155' } },
+          y: { position: 'left', ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+          y1: { position: 'right', ticks: { color: '#fb923c' }, grid: { drawOnChartArea: false } }
+        }
+      } : undefined);
       renderLineChart('engineChart', labels, [
         { label: 'RPM filtered', data: s.rpm, borderColor: '#fbbf24', yAxisID: 'y' },
         { label: 'RPM raw', data: rawPowertrain.rpm, borderColor: 'rgba(251,191,36,.22)', borderWidth: 1, yAxisID: 'y', hidden: true },
