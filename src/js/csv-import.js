@@ -1,11 +1,6 @@
 // Torque Pro CSV parsing: column detection, filtering, metrics, chart and map population.
 
-import { findKey, series, contextualPowertrainFilter, parseTime, fmt, lastValid, maximum, average, smoothSeries } from './utils.js';
-import { setMetric, showError } from './dom.js';
-import { destroyCharts, renderLineChart } from './charts.js';
-import { map, renderInitialRoute, loadTimeline } from './map.js';
-
-export function processCSV(text, fileName = '') {
+function processCSV(text, fileName = '') {
   Papa.parse(text, {
     header: true, skipEmptyLines: 'greedy', dynamicTyping: false,
     complete: ({ data, meta, errors }) => {
@@ -135,7 +130,7 @@ export function processCSV(text, fileName = '') {
   });
 }
 
-export async function tryLoadDefaultCSV() {
+async function tryLoadDefaultCSV() {
   try {
     const name = 'trackLog-2026-example_data_sim.csv';
     const response = await fetch(`./assets/${name}`, { cache: 'no-store' });

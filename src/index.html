@@ -65,6 +65,12 @@
     <section class="panel chart-box collapsible-chart" data-chart-panel="gForceChart"><div class="chart-header"><h2>Raw device G sensor</h2><button type="button" class="collapse-toggle" aria-expanded="true" aria-label="Collapse Raw device G sensor" title="Collapse or expand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="chart-body"><div class="chart-control"><label for="smooth-gforce">G-sensor smoothing</label><input class="graph-smoothing" data-chart="gForceChart" type="range" id="smooth-gforce" min="0" max="100" value="0" step="1"><output id="smooth-gforce-value" class="smooth-value">0%</output></div><div class="chart-wrap"><canvas id="gForceChart"></canvas></div></div></section>
   </div>
 </main>
-<script type="module" src="js/main.js"></script>
+<script src="js/state.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/dom.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/map.js"></script>
+<script src="js/csv-import.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>

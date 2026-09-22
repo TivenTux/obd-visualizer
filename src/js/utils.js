@@ -1,32 +1,32 @@
 // Pure data parsing / numeric helpers shared across the app.
 
-export const norm = s => String(s ?? '').replace(/^﻿/, '').trim().toLowerCase().replace(/\s+/g, ' ');
-export const valid = v => v !== undefined && v !== null && String(v).trim() !== '' && String(v).trim() !== '-';
-export const number = v => {
+const norm = s => String(s ?? '').replace(/^﻿/, '').trim().toLowerCase().replace(/\s+/g, ' ');
+const valid = v => v !== undefined && v !== null && String(v).trim() !== '' && String(v).trim() !== '-';
+const number = v => {
   if (!valid(v)) return null;
   const n = Number(String(v).trim());
   return Number.isFinite(n) ? n : null;
 };
-export const average = a => {
+const average = a => {
   const v = a.filter(Number.isFinite);
   return v.length ? v.reduce((x, y) => x + y, 0) / v.length : null;
 };
-export const maximum = a => {
+const maximum = a => {
   const v = a.filter(Number.isFinite);
   return v.length ? Math.max(...v) : null;
 };
-export const lastValid = a => {
+const lastValid = a => {
   for (let i = a.length - 1; i >= 0; i--) if (Number.isFinite(a[i])) return a[i];
   return null;
 };
-export const median = a => {
+const median = a => {
   const v = a.filter(Number.isFinite).sort((x, y) => x - y);
   if (!v.length) return null;
   const m = Math.floor(v.length / 2);
   return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
 };
 
-export function hampelFilter(values, radius = 3, sigma = 3, maxValue = 8000, maxStep = 3500) {
+function hampelFilter(values, radius = 3, sigma = 3, maxValue = 8000, maxStep = 3500) {
   const out = [...values], flags = new Array(values.length).fill(false);
   for (let i = 0; i < values.length; i++) {
     const v = values[i];
@@ -48,24 +48,24 @@ export function hampelFilter(values, radius = 3, sigma = 3, maxValue = 8000, max
   return { values: out, flags, count: flags.filter(Boolean).length };
 }
 
-export const fmt = (v, d = 1, u = '') => Number.isFinite(v) ? `${v.toFixed(d)}${u ? ` <small>${u}</small>` : ''}` : 'N/A';
+const fmt = (v, d = 1, u = '') => Number.isFinite(v) ? `${v.toFixed(d)}${u ? ` <small>${u}</small>` : ''}` : 'N/A';
 
-export function parseTime(v) {
+function parseTime(v) {
   if (!valid(v)) return { date: null, time: '--:--:--' };
   const m = String(v).trim().match(/^(\d{1,2}-[A-Za-z]{3}-\d{4})\s+(\d{2}:\d{2}:\d{2})/);
   return m ? { date: m[1], time: m[2] } : { date: null, time: String(v) };
 }
 
-export function findKey(fields, ...names) {
+function findKey(fields, ...names) {
   const wanted = names.map(norm);
   return fields.find(f => wanted.includes(norm(f))) || fields.find(f => wanted.some(n => norm(f).includes(n)));
 }
 
-export function series(rows, key) {
+function series(rows, key) {
   return rows.map(r => key ? number(r[key]) : null);
 }
 
-export function contextualPowertrainFilter(raw, obdSpeed, engineLoad) {
+function contextualPowertrainFilter(raw, obdSpeed, engineLoad) {
   const filtered = { rpm: [], fuelFlow: [], tripL100: [] }, flags = { rpm: [], fuelFlow: [], tripL100: [] };
   for (let i = 0; i < raw.rpm.length; i++) {
     const speed = Number.isFinite(obdSpeed[i]) ? Math.max(0, obdSpeed[i]) : null;
@@ -104,7 +104,7 @@ export function contextualPowertrainFilter(raw, obdSpeed, engineLoad) {
   };
 }
 
-export function interpolateMissing(values) {
+function interpolateMissing(values) {
   const out = [...values], validIdx = [];
   for (let i = 0; i < out.length; i++) if (Number.isFinite(out[i])) validIdx.push(i);
   if (!validIdx.length) return out;
@@ -118,7 +118,7 @@ export function interpolateMissing(values) {
   return out;
 }
 
-export function smoothSeries(values, percentage) {
+function smoothSeries(values, percentage) {
   const source = interpolateMissing(values);
   const p = Math.max(0, Math.min(100, percentage)) / 100;
   if (!p || source.length < 3) return source;

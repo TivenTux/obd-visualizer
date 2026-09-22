@@ -1,23 +1,19 @@
 // Leaflet map, GPS route rendering, and timeline playback/follow controls.
 
-import { appState } from './state.js';
-import { setMetric } from './dom.js';
-import { lastValid, average, maximum, fmt } from './utils.js';
-
-export const map = L.map('map', { zoomSnap: .25 }).setView([38.0, 23.7], 10);
+const map = L.map('map', { zoomSnap: .25 }).setView([38.0, 23.7], 10);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-export const route = L.polyline([], { color: '#38bdf8', weight: 4, opacity: .9 }).addTo(map);
+const route = L.polyline([], { color: '#38bdf8', weight: 4, opacity: .9 }).addTo(map);
 let startMarker = null;
 let endMarker = null;
 let playbackTimer = null;
 let followCurrent = false;
 let followTimer = null;
 
-export function renderInitialRoute(path) {
+function renderInitialRoute(path) {
   route.setLatLngs(path);
   if (startMarker) map.removeLayer(startMarker);
   if (endMarker) map.removeLayer(endMarker);
@@ -44,7 +40,7 @@ function setPlaybackState(playing) {
   icon.innerHTML = playing ? '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
 }
 
-export function stopPlayback() {
+function stopPlayback() {
   if (playbackTimer) {
     clearInterval(playbackTimer);
     playbackTimer = null;
@@ -52,7 +48,7 @@ export function stopPlayback() {
   setPlaybackState(false);
 }
 
-export function startPlayback() {
+function startPlayback() {
   if (!appState.timelineState || appState.timelineState.total < 2) return;
   const slider = document.getElementById('timelineSlider');
   if (Number(slider.value) >= appState.timelineState.total) slider.value = 1;
@@ -70,7 +66,7 @@ export function startPlayback() {
   }, 180);
 }
 
-export function fitCompleteRoute() {
+function fitCompleteRoute() {
   if (!appState.timelineState) return;
   const full = appState.timelineState.pathByRow.filter(Boolean);
   if (!full.length) return;
@@ -78,7 +74,7 @@ export function fitCompleteRoute() {
   else map.fitBounds(L.latLngBounds(full), { padding: [30, 30], maxZoom: 17 });
 }
 
-export function setFollowCurrent(active) {
+function setFollowCurrent(active) {
   followCurrent = active;
   const button = document.getElementById('mapZoomActive');
   button.classList.toggle('active', active);
@@ -98,7 +94,7 @@ function zoomToActivePosition() {
   if (position) map.flyTo(position, Math.max(map.getZoom(), 16), { duration: .5 });
 }
 
-export function updateTimelineView() {
+function updateTimelineView() {
   const timelineState = appState.timelineState;
   if (!timelineState) return;
   const slider = document.getElementById('timelineSlider');
@@ -127,7 +123,7 @@ export function updateTimelineView() {
   appState.charts.forEach(chart => chart.draw());
 }
 
-export function loadTimeline({ total, labels, pathByRow, series, hasEngineTemp }) {
+function loadTimeline({ total, labels, pathByRow, series, hasEngineTemp }) {
   appState.timelineState = { total, activeCount: total, labels, pathByRow, series, hasEngineTemp };
   const timelineSlider = document.getElementById('timelineSlider');
   timelineSlider.max = total;

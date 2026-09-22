@@ -1,11 +1,5 @@
 // Entry point: wires up UI controls and kicks off the default CSV load.
 
-import { appState } from './state.js';
-import { showError } from './dom.js';
-import { applyGraphSmoothing, setChartPanelCollapsed } from './charts.js';
-import { stopPlayback, startPlayback, fitCompleteRoute, setFollowCurrent, updateTimelineView } from './map.js';
-import { processCSV, tryLoadDefaultCSV } from './csv-import.js';
-
 document.querySelectorAll('.collapse-toggle').forEach(button => button.addEventListener('click', () => {
   const panel = button.closest('.collapsible-chart');
   setChartPanelCollapsed(panel, !panel.classList.contains('collapsed'));

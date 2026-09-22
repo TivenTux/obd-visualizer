@@ -1,8 +1,5 @@
 // Chart.js setup, rendering, smoothing and collapse-panel behavior.
 
-import { appState } from './state.js';
-import { smoothSeries } from './utils.js';
-
 const inactiveTimelinePlugin = {
   id: 'inactiveTimeline',
   afterDatasetsDraw(chart) {
@@ -19,7 +16,7 @@ const inactiveTimelinePlugin = {
 };
 Chart.register(inactiveTimelinePlugin);
 
-export function baseOptions(extra = {}) {
+function baseOptions(extra = {}) {
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -38,12 +35,12 @@ export function baseOptions(extra = {}) {
   };
 }
 
-export function graphSmoothingValue(canvasId) {
+function graphSmoothingValue(canvasId) {
   const slider = document.querySelector(`.graph-smoothing[data-chart="${canvasId}"]`);
   return slider ? Number(slider.value) : 0;
 }
 
-export function renderLineChart(canvas, labels, datasets, options) {
+function renderLineChart(canvas, labels, datasets, options) {
   const pct = graphSmoothingValue(canvas);
   datasets.forEach(ds => {
     ds._sourceData = [...ds.data];
@@ -54,12 +51,12 @@ export function renderLineChart(canvas, labels, datasets, options) {
   appState.charts.push(chart);
 }
 
-export function destroyCharts() {
+function destroyCharts() {
   appState.charts.forEach(c => c.destroy());
   appState.charts = [];
 }
 
-export function applyGraphSmoothing(slider) {
+function applyGraphSmoothing(slider) {
   const canvasId = slider.dataset.chart, pct = Number(slider.value);
   const output = document.getElementById(`${slider.id}-value`);
   if (output) output.value = `${pct}%`;
@@ -69,7 +66,7 @@ export function applyGraphSmoothing(slider) {
   chart.update('none');
 }
 
-export function setChartPanelCollapsed(panel, collapsed) {
+function setChartPanelCollapsed(panel, collapsed) {
   const button = panel.querySelector('.collapse-toggle');
   panel.classList.toggle('collapsed', collapsed);
   button.setAttribute('aria-expanded', String(!collapsed));
